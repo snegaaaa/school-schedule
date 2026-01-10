@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ru"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Пользователи</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+  <style>
+    .role-badge{ display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; border:1px solid var(--border); font-weight:800; font-size:12px; }
+    .role-admin{ background: rgba(220,53,69,.06); border-color: rgba(220,53,69,.25); }
+    .role-viewer{ background: rgba(13,110,253,.06); border-color: rgba(13,110,253,.25); }
+    .pill-off{ opacity:.6; }
+    .rowform{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .mini{ height:34px; padding:0 10px; }
+    .chk{ display:flex; align-items:center; gap:8px; padding:6px 10px; border:1px solid var(--border); border-radius:12px; background:#fff; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <th:block th:replace="~{fragments/topbar :: topbar('Пользователи','users')}"></th:block>
+
+  <div class="pagehead">
+    <h1>Пользователи</h1>
+    <p>Управление ролями и доступом.</p>
+  </div>
+
+  <div class="card" th:if="${error != null || ok != null}">
+    <div class="alert alert-danger" th:if="${error == 'role'}">Неверная роль.</div>
+    <div class="alert alert-danger" th:if="${error == 'notFound'}">Пользователь не найден.</div>
+    <div class="alert alert-warn" th:if="${error == 'selfDisable'}">Нельзя отключить самого себя.</div>
+    <div class="alert alert-warn" th:if="${error == 'selfDemote'}">Нельзя понизить свою роль ниже ADMIN.</div>
+    <div class="alert alert-success" th:if="${ok != null}">Изменения сохранены.</div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <div class="h2" style="margin-bottom:10px;">Список пользователей</div>
+
+    <div class="muted" style="margin-bottom:12px;">
+      Галочка “Активен” отвечает за возможность входа.
+    </div>
+
+    <table class="table">
+      <tr>
+        <th style="width:70px;">ID</th>
+        <th>Логин</th>
+        <th style="width:160px;">Роль</th>
+        <th style="width:120px;">Статус</th>
+        <th style="width:360px;">Действия</th>
+      </tr>
+
+      <tr th:each="u : ${users}">
+        <td th:text="${u.id}">1</td>
+        <td><b th:text="${u.username}">admin</b></td>
+
+        <td>
+          <span class="role-badge" th:classappend="${u.role == 'ADMIN'} ? ' role-admin' : ' role-viewer'">
+            <span th:text="${u.role == 'ADMIN'} ? '🛡️ ADMIN' : '👁️ VIEWER'">ADMIN</span>
+          </span>
+        </td>
+
+        <td>
+          <span th:if="${u.enabled}" class="badge">✅ Активен</span>
+          <span th:if="${!u.enabled}" class="badge pill-off">⛔ Отключён</span>
+        </td>
+
+        <td>
+          <form class="rowform" method="post" th:action="@{/admin/users/update}">
+            <th:block th:replace="~{fragments/csrf :: csrf}"></th:block>
+            <input type="hidden" name="id" th:value="${u.id}">
+
+            <select class="input mini" name="role">
+              <option value="VIEWER" th:selected="${u.role == 'VIEWER'}">VIEWER</option>
+              <option value="ADMIN" th:selected="${u.role == 'ADMIN'}">ADMIN</option>
+            </select>
+
+            <label class="chk">
+              <input type="checkbox" name="enabled" th:checked="${u.enabled}">
+              <span>Активен</span>
+            </label>
+
+            <button class="btn mini" type="submit">Сохранить</button>
+          </form>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>

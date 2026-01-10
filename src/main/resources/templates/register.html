@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Регистрация</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+
+<div class="auth-page">
+  <div class="auth-card">
+
+    <div class="auth-head">
+      <h1 class="title">Регистрация</h1>
+      <p class="sub">Новый пользователь создаётся с ролью <b>VIEWER</b>.</p>
+    </div>
+
+    <div class="card">
+      <div th:if="${error}" class="alert alert-danger" style="margin-bottom:12px;">
+        <b>Ошибка:</b> <span th:text="${error}"></span>
+      </div>
+
+      <form method="post" th:action="@{/register}" class="form" style="gap:12px;">
+        <th:block th:replace="~{fragments/csrf :: csrf}"></th:block>
+
+        <div class="field" style="min-width:100%;">
+          <div class="label">Логин</div>
+          <input class="input"
+                 name="username"
+                 type="text"
+                 autocomplete="username"
+                 th:value="${username}"
+                 placeholder="например: dmitry_01"
+                 required>
+        </div>
+
+        <div class="field" style="min-width:100%;">
+          <div class="label">Пароль</div>
+          <input class="input"
+                 name="password"
+                 type="password"
+                 autocomplete="new-password"
+                 placeholder="минимум 6 символов"
+                 required>
+        </div>
+
+        <div class="field" style="min-width:100%;">
+          <div class="label">Повтор пароля</div>
+          <input class="input"
+                 name="password2"
+                 type="password"
+                 autocomplete="new-password"
+                 placeholder="повторите пароль"
+                 required>
+        </div>
+
+        <button class="btn" type="submit" style="width:100%;">Создать аккаунт</button>
+      </form>
+
+      <div class="auth-actions" style="margin-top:10px;">
+        <a class="btn btn-link" th:href="@{/login}" style="width:100%;">Уже есть аккаунт</a>
+        <a class="btn btn-link" th:href="@{/}" style="width:100%;">На главную</a>
+      </div>
+
+      <hr class="hr">
+
+      <div class="muted" style="font-size:12px; line-height:1.35rem;">
+        Допустимые символы логина: латиница, цифры, точка, подчёркивание, дефис.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

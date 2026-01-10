@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ru"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Слоты времени</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="container">
+
+  <div class="topbar">
+    <div class="brand">
+      <a class="brand-title" th:href="@{/}">Школьное расписание</a>
+      <p class="brand-sub">Слоты времени</p>
+    </div>
+
+    <div class="nav">
+      <a th:href="@{/schedule}">📅 По дням</a>
+      <a th:href="@{/schedule/week}">🗓️ Неделя</a>
+      <a th:href="@{/stats}">📊 Статистика</a>
+      <a th:href="@{/about}">ℹ️ Об авторе</a>
+
+      <span sec:authorize="hasRole('ADMIN')" class="inline">
+        <a th:href="@{/classes}">🏫 Классы</a>
+        <a class="active" th:href="@{/setup}">🧩 Справочники</a>
+      </span>
+    </div>
+
+    <div class="userbox">
+      <div class="badge">👤 <span>Пользователь:</span> <b sec:authentication="name">user</b></div>
+      <form th:action="@{/logout}" method="post" style="margin:0;">
+        <th:block th:replace="~{fragments/csrf :: csrf}"></th:block>
+        <button class="btn" type="submit">Выйти</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="pagehead">
+    <h1>Слоты времени</h1>
+    <p>Слоты времени фиксированы (16 слотов) и не редактируются.</p>
+  </div>
+
+  <div class="card">
+    <div class="alert alert-warn">
+      Функция редактирования слотов времени отключена.
+    </div>
+
+    <div style="margin-top:12px;" class="inline">
+      <a class="btn btn-link" th:href="@{/setup}">Назад в справочники</a>
+      <a class="btn" th:href="@{/schedule}">К расписанию</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

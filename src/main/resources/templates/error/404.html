@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Страница не найдена</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+
+<div class="auth-page">
+  <div class="auth-card">
+
+    <div class="auth-head">
+      <h1 class="title">Страница не найдена</h1>
+      <p class="sub">404 — возможно, ссылка устарела или адрес введён с ошибкой.</p>
+    </div>
+
+    <div class="card">
+      <div class="muted" style="font-size:12px; margin-bottom:12px;">
+        Путь: <b th:text="${path} ?: '-'">-</b>
+      </div>
+
+      <div class="auth-actions">
+        <a class="btn" th:href="@{/}" style="width:100%;">На главную</a>
+        <a class="btn btn-link" th:href="@{/schedule/week}" style="width:100%;">К расписанию</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

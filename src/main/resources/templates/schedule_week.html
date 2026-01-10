@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ru"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Недельное расписание</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="container">
+
+  <th:block th:replace="~{fragments/topbar :: topbar('Неделя','week')}"></th:block>
+
+  <div class="pagehead">
+    <h1>Недельное расписание</h1>
+    <p>Выберите класс — ниже показаны уроки по дням недели.</p>
+  </div>
+
+  <div th:if="${error != null}" class="card">
+    <div th:if="${error == 'conflict'}" class="alert alert-danger">
+      Конфликт (класс/учитель/кабинет заняты).
+    </div>
+    <div th:if="${error == 'notFound'}" class="alert alert-danger">
+      Данные не найдены (возможно уже удалено).
+    </div>
+  </div>
+
+  <div th:if="${fatal == 'noClasses'}" class="card">
+    <div class="alert alert-danger">
+      Нет классов. Сначала добавьте хотя бы один класс в разделе <b>Классы</b>.
+    </div>
+  </div>
+
+  <div th:if="${fatal != 'noClasses'}" class="grid">
+    <div class="card">
+      <div class="h2">Фильтр</div>
+
+      <form class="form" method="get" action="/schedule/week">
+        <div class="field">
+          <div class="label">Класс</div>
+          <select name="classId">
+            <option th:each="c : ${classes}"
+                    th:value="${c.id}"
+                    th:selected="${c.id == selectedClassId}"
+                    th:text="${c.name}">
+            </option>
+          </select>
+        </div>
+        <button class="btn" type="submit">Показать</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="h2">Расписание</div>
+      <p class="muted" style="margin-top:6px;">Редактирование выполняется в разделе “По дням”.</p>
+
+      <hr class="hr">
+
+      <div th:each="entry : ${byDay}">
+        <div class="inline" style="justify-content:space-between; width:100%;">
+          <div class="h2" style="margin:0;" th:text="${entry.key.title}">День</div>
+          <a class="btn btn-link"
+             th:href="'/schedule?classId=' + ${selectedClassId} + '&day=' + ${entry.key.name()}">
+            Открыть день
+          </a>
+        </div>
+
+        <div th:if="${#lists.isEmpty(entry.value)}" class="muted" style="padding:8px 0;">
+          Нет уроков
+        </div>
+
+        <div th:if="${!#lists.isEmpty(entry.value)}">
+          <table class="table">
+            <tr>
+              <th style="width:140px;">№ / Время</th>
+              <th>Предмет</th>
+              <th>Учитель</th>
+              <th>Кабинет</th>
+              <th style="width:220px;" sec:authorize="hasRole('ADMIN')">Действия</th>
+            </tr>
+
+            <tr th:each="l : ${entry.value}">
+              <td th:text="${l.timeSlot != null ? l.timeSlot.label : '—'}"></td>
+              <td th:text="${l.subject != null ? l.subject.name : '—'}"></td>
+              <td th:text="${l.teacher != null ? l.teacher.fullName : '—'}"></td>
+              <td th:text="${l.room != null ? l.room.number : '—'}"></td>
+
+              <td sec:authorize="hasRole('ADMIN')">
+                <form method="post" action="/schedule/week/delete" style="margin:0;">
+                  <th:block th:replace="~{fragments/csrf :: csrf}"></th:block>
+                  <input type="hidden" name="id" th:value="${l.id}">
+                  <input type="hidden" name="classId" th:value="${selectedClassId}">
+                  <button class="btn btn-danger" type="submit">Удалить</button>
+                </form>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <hr class="hr">
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

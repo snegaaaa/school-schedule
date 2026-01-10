@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ru"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<th:block th:fragment="topbar(subtitle, active)">
+  <div class="topbar">
+    <div class="brand">
+      <a class="brand-title" th:href="@{/}">Школьное расписание</a>
+      <p class="brand-sub" th:text="${subtitle}">Раздел</p>
+    </div>
+
+    <div class="nav">
+      <a th:href="@{/schedule}" th:classappend="${active=='day'} ? ' active' : ''">📅 По дням</a>
+      <a th:href="@{/schedule/week}" th:classappend="${active=='week'} ? ' active' : ''">🗓️ Неделя</a>
+      <a th:href="@{/stats}" th:classappend="${active=='stats'} ? ' active' : ''">📊 Статистика</a>
+      <a th:href="@{/about}" th:classappend="${active=='about'} ? ' active' : ''">ℹ️ Об авторе</a>
+
+      <span sec:authorize="hasRole('ADMIN')" class="inline">
+        <a th:href="@{/classes}" th:classappend="${active=='classes'} ? ' active' : ''">🏫 Классы</a>
+        <a th:href="@{/setup}" th:classappend="${active=='setup'} ? ' active' : ''">🧩 Справочники</a>
+        <a th:href="@{/admin/users}" th:classappend="${active=='users'} ? ' active' : ''">👥 Пользователи</a>
+      </span>
+    </div>
+
+    <div class="userbox">
+      <div class="badge">👤 <span>Пользователь:</span> <b sec:authentication="name">user</b></div>
+      <form th:action="@{/logout}" method="post" style="margin:0;">
+        <th:block th:replace="~{fragments/csrf :: csrf}"></th:block>
+        <button class="btn" type="submit">Выйти</button>
+      </form>
+    </div>
+  </div>
+</th:block>
+
+</body>
+</html>

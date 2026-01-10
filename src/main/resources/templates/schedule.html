@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="ru"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Расписание по дням</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+  <style>
+    .row { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; }
+    .row .field { flex: 1 1 220px; }
+    .row .btnbox { flex: 0 0 auto; }
+    .mini-note { margin-top:10px; padding:10px 12px; border-radius:12px; border:1px solid var(--border); background: rgba(13,110,253,.05); }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <th:block th:replace="~{fragments/topbar :: topbar('По дням','day')}"></th:block>
+
+  <div class="pagehead">
+    <h1>Расписание по дням</h1>
+    <p>Выберите класс и день недели — ниже появятся уроки.</p>
+  </div>
+
+  <div th:if="${fatal == 'noClasses'}" class="card">
+    <div class="alert alert-danger">
+      Нет классов. Сначала добавьте хотя бы один класс в разделе <b>Классы</b>.
+    </div>
+  </div>
+
+  <div th:if="${fatal == 'noTimeSlots'}" class="card">
+    <div class="alert alert-danger">
+      Нет слотов времени. Перейдите в <b>Справочники</b> и добавьте слоты времени.
+    </div>
+  </div>
+
+  <div th:if="${fatal != 'noClasses' && fatal != 'noTimeSlots'}" class="grid">
+
+    <div class="card">
+      <div class="h2">Фильтр</div>
+
+      <form class="form" method="get" action="/schedule">
+        <div class="row">
+          <div class="field">
+            <div class="label">Класс</div>
+            <select name="classId">
+              <option th:each="c : ${classes}"
+                      th:value="${c.id}"
+                      th:selected="${c.id == selectedClassId}"
+                      th:text="${c.name}">
+              </option>
+            </select>
+          </div>
+
+          <div class="field">
+            <div class="label">День</div>
+            <select name="day">
+              <option th:each="d : ${days}"
+                      th:value="${d}"
+                      th:selected="${d == selectedDay}"
+                      th:text="${d.title}">
+              </option>
+            </select>
+          </div>
+
+          <div class="btnbox">
+            <button class="btn" type="submit">Показать</button>
+          </div>
+        </div>
+      </form>
+
+      <div class="mini-note muted">
+        Подсказка: обзор всей недели — на странице <b>Неделя</b>.
+      </div>
+
+      <div th:if="${error != null}" style="margin-top:12px;">
+        <div th:if="${error == 'conflict' || error == 'duplicate' || error == 'teacherBusy' || error == 'roomBusy'}"
+             class="alert alert-danger">
+          Конфликт (класс/учитель/кабинет заняты).
+        </div>
+
+        <div th:if="${error == 'notFound'}" class="alert alert-danger">
+          Данные не найдены (возможно уже удалено).
+        </div>
+
+        <div th:if="${error == 'needSetup'}" class="alert alert-warn">
+          Заполните справочники (предметы/учителя/кабинеты).
+        </div>
+
+        <div th:if="${error == 'forbiddenEdit'}" class="alert alert-danger">
+          Попытка редактировать урок не из выбранного класса/дня.
+        </div>
+      </div>
+    </div>
+
+    <div class="card" th:if="${lessons != null}">
+      <div class="inline" style="justify-content:space-between; width:100%;">
+        <div>
+          <div class="h2" style="margin:0;">Уроки</div>
+          <div class="muted" style="margin-top:6px;">
+            Класс:
+            <th:block th:each="c : ${classes}">
+              <b th:if="${c.id == selectedClassId}" th:text="${c.name}">—</b>
+            </th:block>
+            • День: <b th:text="${selectedDay.title}">—</b>
+          </div>
+        </div>
+
+        <a class="btn btn-link"
+           th:href="'/schedule/week?classId=' + ${selectedClassId}">
+          Открыть неделю
+        </a>
+      </div>
+
+      <hr class="hr">
+
+      <table class="table">
+        <tr>
+          <th style="width:140px;">№ / Время</th>
+          <th>Предмет</th>
+          <th>Учитель</th>
+          <th>Кабинет</th>
+          <th style="width:260px;">Действия</th>
+        </tr>
+
+        <tr th:each="l : ${lessons}">
+          <td th:text="${l.timeSlot.label}"></td>
+          <td th:text="${l.subject.name}"></td>
+          <td th:text="${l.teacher.fullName}"></td>
+          <td th:text="${l.room.number}"></td>
+          <td>
+            <span sec:authorize="hasRole('ADMIN')" class="inline" style="gap:10px;">
+              <a class="btn btn-link"
+                 th:href="'/schedule/edit?id=' + ${l.id} + '&classId=' + ${selectedClassId} + '&day=' + ${selectedDay.name()}">
+                Изменить
+              </a>
+
+              <form method="post" action="/schedule/delete" style="margin:0;">
+                <th:block th:replace="~{fragments/csrf :: csrf}"></th:block>
+                <input type="hidden" name="id" th:value="${l.id}">
+                <input type="hidden" name="classId" th:value="${selectedClassId}">
+                <input type="hidden" name="day" th:value="${selectedDay}">
+                <button class="btn btn-danger" type="submit">Удалить</button>
+              </form>
+            </span>
+
+            <span sec:authorize="hasRole('VIEWER')" class="muted">—</span>
+          </td>
+        </tr>
+      </table>
+
+      <div sec:authorize="hasRole('ADMIN')">
+        <hr class="hr">
+        <div class="h2">Добавить урок</div>
+
+        <div th:if="${fatal == 'needSetup'}" class="alert alert-warn" style="margin-bottom:12px;">
+          Нельзя добавлять уроки: заполните справочники.
+        </div>
+
+        <form class="form" method="post" action="/schedule/add" th:if="${fatal != 'needSetup'}">
+          <th:block th:replace="~{fragments/csrf :: csrf}"></th:block>
+
+          <input type="hidden" name="classId" th:value="${selectedClassId}">
+          <input type="hidden" name="day" th:value="${selectedDay}">
+
+          <div class="row">
+            <div class="field">
+              <div class="label">Время</div>
+              <select name="timeSlotId">
+                <option th:each="ts : ${timeSlots}" th:value="${ts.id}" th:text="${ts.label}"></option>
+              </select>
+            </div>
+
+            <div class="field">
+              <div class="label">Предмет</div>
+              <select name="subjectId">
+                <option th:each="s : ${subjects}" th:value="${s.id}" th:text="${s.name}"></option>
+              </select>
+            </div>
+
+            <div class="field">
+              <div class="label">Учитель</div>
+              <select name="teacherId">
+                <option th:each="t : ${teachers}" th:value="${t.id}" th:text="${t.fullName}"></option>
+              </select>
+            </div>
+
+            <div class="field">
+              <div class="label">Кабинет</div>
+              <select name="roomId">
+                <option th:each="r : ${rooms}" th:value="${r.id}" th:text="${r.number}"></option>
+              </select>
+            </div>
+
+            <div class="btnbox">
+              <button class="btn" type="submit">Добавить</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

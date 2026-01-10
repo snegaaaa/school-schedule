@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ru"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Редактирование класса</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div class="container">
+
+  <div class="topbar">
+    <div class="brand">
+      <a class="brand-title" th:href="@{/}">Школьное расписание</a>
+      <p class="brand-sub">Редактирование</p>
+    </div>
+
+    <div class="nav">
+      <a th:href="@{/schedule}">📅 По дням</a>
+      <a th:href="@{/schedule/week}">🗓️ Неделя</a>
+      <a th:href="@{/stats}">📊 Статистика</a>
+      <a th:href="@{/about}">ℹ️ Об авторе</a>
+
+      <span sec:authorize="hasRole('ADMIN')" class="inline">
+        <a class="active" th:href="@{/classes}">🏫 Классы</a>
+        <a th:href="@{/setup}">🧩 Справочники</a>
+      </span>
+    </div>
+
+    <div class="userbox">
+      <div class="badge">👤 <span>Пользователь:</span> <b sec:authentication="name">user</b></div>
+      <form th:action="@{/logout}" method="post" style="margin:0;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <button class="btn" type="submit">Выйти</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="pagehead">
+    <h1>Редактирование класса</h1>
+    <p>Текущий класс: <b th:text="${schoolClass.name}"></b></p>
+  </div>
+
+  <div class="card">
+    <div th:if="${error != null}" style="margin-bottom:12px;">
+      <div th:if="${error == 'empty'}" class="alert alert-danger">Имя класса не может быть пустым.</div>
+      <div th:if="${error == 'format'}" class="alert alert-danger">
+        Формат: <b>1–11</b> + <b>русская заглавная буква</b>. Примеры: 7А, 11Б.
+      </div>
+      <div th:if="${error == 'duplicate'}" class="alert alert-danger">Такой класс уже существует.</div>
+    </div>
+
+    <form class="form" method="post" action="/classes/edit">
+      <!-- ✅ CSRF токен -->
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+      <input type="hidden" name="id" th:value="${schoolClass.id}">
+      <div class="field" style="min-width:260px;">
+        <div class="label">Новое имя</div>
+        <input class="input" name="name" th:value="${schoolClass.name}">
+      </div>
+      <button class="btn" type="submit">Сохранить</button>
+      <a class="btn btn-link" th:href="@{/classes}">Назад</a>
+    </form>
+  </div>
+
+</div>
+</body>
+</html>

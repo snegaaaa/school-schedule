@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ru"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${pageTitle} ?: 'Редактирование'">Редактирование</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+  <style>
+    .actions { display:flex; gap:10px; flex-wrap:wrap; }
+    .hint { margin-top:10px; padding:10px 12px; border-radius:12px; border:1px solid var(--border); background: rgba(13,110,253,.05); }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <th:block th:replace="~{fragments/topbar :: topbar('Справочники','setup')}"></th:block>
+
+  <div class="pagehead">
+    <h1 th:text="${pageTitle} ?: 'Редактирование'">Редактирование</h1>
+    <p th:text="${pageSubtitle} ?: 'Измените значение и сохраните.'">Измените значение и сохраните.</p>
+  </div>
+
+  <div class="card">
+    <div th:if="${error != null}" style="margin-bottom:12px;">
+      <div th:if="${error == 'empty'}" class="alert alert-danger">Поле не может быть пустым.</div>
+      <div th:if="${error == 'format'}" class="alert alert-danger">Неверный формат значения.</div>
+      <div th:if="${error == 'duplicate'}" class="alert alert-danger">Такое значение уже существует.</div>
+      <div th:if="${error == 'notFound'}" class="alert alert-danger">Данные не найдены.</div>
+      <div th:if="${error == 'inUse'}" class="alert alert-danger">Нельзя изменить: значение используется в расписании.</div>
+    </div>
+
+    <form class="form" method="post" th:attr="action=${postAction}">
+      <th:block th:replace="~{fragments/csrf :: csrf}"></th:block>
+
+      <input type="hidden" name="id" th:value="${id}">
+
+      <div class="field" style="min-width:320px;">
+        <div class="label" th:text="${fieldLabel} ?: 'Значение'">Значение</div>
+        <input class="input"
+               th:attr="name=${fieldName}"
+               th:value="${fieldValue}"
+               th:placeholder="${placeholder}"
+               required>
+      </div>
+
+      <div class="actions" style="margin-top:6px;">
+        <button class="btn" type="submit">Сохранить</button>
+        <a class="btn btn-link" th:href="${backUrl} ?: '/setup'">Назад</a>
+      </div>
+
+      <div class="hint muted" th:if="${hint != null}">
+        <span th:text="${hint}">Подсказка</span>
+      </div>
+    </form>
+  </div>
+
+</div>
+</body>
+</html>

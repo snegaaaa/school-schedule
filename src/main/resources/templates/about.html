@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ru"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Об авторе</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+  <style>
+    .profile { display:flex; gap:14px; align-items:flex-start; }
+    .avatar {
+      width:74px; height:74px; border-radius:18px;
+      border:1px solid var(--border);
+      background: rgba(13,110,253,.06);
+      display:flex; align-items:center; justify-content:center;
+      font-size:26px; font-weight:900;
+      flex: 0 0 auto;
+    }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+    .chip { padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:#fff; font-weight:800; font-size:12px; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <th:block th:replace="~{fragments/topbar :: topbar('Об авторе','about')}"></th:block>
+
+  <div class="pagehead">
+    <h1>Об авторе</h1>
+    <p>Информация о разработчике и проекте.</p>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="profile">
+        <div class="avatar">DS</div>
+        <div>
+          <div class="h2" style="margin:0;">Дмитрий</div>
+          <div class="muted" style="margin-top:4px;">
+            Студент • разработчик учебного проекта
+          </div>
+
+          <div class="chips">
+            <div class="chip">Java</div>
+            <div class="chip">Spring Boot</div>
+            <div class="chip">PostgreSQL</div>
+            <div class="chip">Thymeleaf</div>
+            <div class="chip">Spring Security</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="hr">
+
+      <div class="muted" style="line-height:1.55rem;">
+        Проект предназначен для ведения школьного расписания: управление классами,
+        справочниками (учителя, предметы, кабинеты) и просмотр расписания по дням и неделе.
+        Реализованы роли доступа (ADMIN/VIEWER), защита CSRF и базовая статистика.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="h2">Контакты</div>
+      <div class="muted" style="margin-top:8px; line-height:1.55rem;">
+        Email: <b>—</b><br>
+        Telegram: <b>—</b><br>
+        Git: <b>—</b>
+      </div>
+      <div class="muted" style="margin-top:10px; font-size:12px;">
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

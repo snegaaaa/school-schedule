@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="ru"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Статистика</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+  <style>
+    .kpi-grid{
+      display:grid;
+      grid-template-columns:repeat(6, 1fr);
+      gap:12px;
+      margin-top:14px;
+    }
+    @media (max-width: 1150px){ .kpi-grid{ grid-template-columns:repeat(3, 1fr);} }
+    @media (max-width: 700px){ .kpi-grid{ grid-template-columns:repeat(2, 1fr);} }
+    @media (max-width: 420px){ .kpi-grid{ grid-template-columns:1fr;} }
+
+    .kpi-card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:14px;
+      box-shadow:var(--shadow);
+      padding:14px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-height:72px;
+    }
+    .kpi-ic{
+      width:42px;
+      height:42px;
+      border-radius:14px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border:1px solid rgba(13,110,253,.18);
+      background:rgba(13,110,253,.08);
+      font-size:20px;
+      flex:0 0 auto;
+    }
+    .kpi-lbl{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:900;
+      margin:0 0 2px;
+      letter-spacing:.2px;
+    }
+    .kpi-num{
+      font-size:26px;
+      font-weight:900;
+      line-height:1;
+      margin:0;
+    }
+
+    .bars { display:flex; gap:14px; align-items:flex-end; padding-top:10px; }
+    .bar { width: 100%; }
+    .bar .col { height: 140px; display:flex; align-items:flex-end; }
+    .bar .fill { width:100%; border-radius: 10px; background: rgba(13, 110, 253, .18); border: 1px solid rgba(13, 110, 253, .28); }
+    .bar .cap { margin-top:8px; text-align:center; font-size: 12px; color: var(--muted); }
+    .bar .val { text-align:center; font-weight:900; margin-top:2px; }
+
+    .topline { display:flex; gap:12px; flex-wrap:wrap; }
+    .topbadge { padding:10px 12px; border-radius: 12px; background: rgba(13, 110, 253, .08); border: 1px solid rgba(13, 110, 253, .16); }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="topbar">
+    <div class="brand">
+      <a class="brand-title" th:href="@{/}">Школьное расписание</a>
+      <p class="brand-sub">Статистика</p>
+    </div>
+
+    <div class="nav">
+      <a th:href="@{/schedule}">📅 По дням</a>
+      <a th:href="@{/schedule/week}">🗓️ Неделя</a>
+      <a class="active" th:href="@{/stats}">📊 Статистика</a>
+      <a th:href="@{/about}">ℹ️ Об авторе</a>
+
+      <span sec:authorize="hasRole('ADMIN')" class="inline">
+        <a th:href="@{/classes}">🏫 Классы</a>
+        <a th:href="@{/setup}">🧩 Справочники</a>
+        <a th:href="@{/admin/users}">👥 Пользователи</a>
+      </span>
+    </div>
+
+    <div class="userbox">
+      <div class="badge">👤 <span>Пользователь:</span> <b sec:authentication="name">user</b></div>
+      <form th:action="@{/logout}" method="post" style="margin:0;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <button class="btn" type="submit">Выйти</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="pagehead">
+    <h1>Статистика</h1>
+    <p>Сводка по данным и нагрузке в расписании.</p>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-ic">👥</div>
+      <div>
+        <div class="kpi-lbl">Пользователи</div>
+        <div class="kpi-num" th:text="${usersCount}">0</div>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-ic">🏫</div>
+      <div>
+        <div class="kpi-lbl">Классы</div>
+        <div class="kpi-num" th:text="${classesCount}">0</div>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-ic">🕒</div>
+      <div>
+        <div class="kpi-lbl">Слоты времени</div>
+        <div class="kpi-num" th:text="${timeSlotsCount}">0</div>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-ic">📚</div>
+      <div>
+        <div class="kpi-lbl">Предметы</div>
+        <div class="kpi-num" th:text="${subjectsCount}">0</div>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-ic">👩‍🏫</div>
+      <div>
+        <div class="kpi-lbl">Учителя</div>
+        <div class="kpi-num" th:text="${teachersCount}">0</div>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-ic">🧾</div>
+      <div>
+        <div class="kpi-lbl">Уроки</div>
+        <div class="kpi-num" th:text="${lessonsCount}">0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid" style="margin-top: 14px;">
+
+    <div class="card">
+      <div class="h2">Топ по нагрузке</div>
+      <div class="topline" style="margin-top: 10px;">
+        <div class="topbadge">
+          <div class="muted" style="font-size:12px;">Учитель</div>
+          <div style="font-weight:900;" th:text="${topTeacher.name}">—</div>
+          <div class="muted" th:text="'Уроков: ' + ${topTeacher.count}">Уроков: 0</div>
+        </div>
+        <div class="topbadge">
+          <div class="muted" style="font-size:12px;">Кабинет</div>
+          <div style="font-weight:900;" th:text="${topRoom.name}">—</div>
+          <div class="muted" th:text="'Уроков: ' + ${topRoom.count}">Уроков: 0</div>
+        </div>
+        <div class="topbadge">
+          <div class="muted" style="font-size:12px;">Предмет</div>
+          <div style="font-weight:900;" th:text="${topSubject.name}">—</div>
+          <div class="muted" th:text="'Уроков: ' + ${topSubject.count}">Уроков: 0</div>
+        </div>
+      </div>
+
+      <hr class="hr">
+      <div class="muted" style="font-size:12px;">
+        Обновлено: <span th:text="${#temporals.format(updatedAt, 'dd.MM.yyyy HH:mm')}">—</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="h2">Уроки по дням недели</div>
+
+      <div class="bars">
+        <div class="bar" th:each="b : ${bars}">
+          <div class="col">
+            <div class="fill" th:style="'height:' + ${b.percent} + '%'"></div>
+          </div>
+          <div class="cap" th:text="${b.title}">Понедельник</div>
+          <div class="val" th:text="${b.count}">0</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>

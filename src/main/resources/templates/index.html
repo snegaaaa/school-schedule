@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="ru"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Школьное расписание</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+  <style>
+    .action-grid{
+      display:grid;
+      grid-template-columns:repeat(4, 1fr);
+      gap:12px;
+    }
+    @media (max-width: 980px){ .action-grid{ grid-template-columns:repeat(2, 1fr); } }
+    @media (max-width: 520px){ .action-grid{ grid-template-columns:1fr; } }
+
+    .action{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      padding:14px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:#fff;
+      box-shadow:var(--shadow);
+      text-decoration:none;
+      transition: transform .08s ease, border-color .08s ease, background .08s ease;
+      min-height:86px;
+    }
+    .action:hover{
+      border-color: rgba(13,110,253,.35);
+      background: rgba(13,110,253,.03);
+      transform: translateY(-1px);
+    }
+    .action .ic{
+      width:38px; height:38px;
+      display:flex; align-items:center; justify-content:center;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background: rgba(13,110,253,.06);
+      flex: 0 0 auto;
+      font-size:18px;
+    }
+    .action .t{ font-weight:900; margin:0; line-height:1.15rem; }
+    .action .d{ margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.25rem; }
+
+    /* Health */
+    .health-list{ display:flex; flex-direction:column; gap:10px; margin-top:12px; }
+    .health-item{
+      display:flex; gap:12px; align-items:flex-start; justify-content:space-between;
+      padding:12px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:#fff;
+    }
+    .h-left{ display:flex; gap:12px; align-items:flex-start; }
+    .dot{
+      width:12px; height:12px; border-radius:999px; margin-top:4px;
+      border:1px solid rgba(0,0,0,.12);
+      flex:0 0 auto;
+    }
+    .dot.ok{ background: rgba(25,135,84,.9); }
+    .dot.warn{ background: rgba(255,193,7,.95); }
+    .dot.bad{ background: rgba(220,53,69,.9); }
+
+    .h-title{ font-weight:900; }
+    .h-value{ color:var(--muted); font-weight:900; margin-left:8px; }
+    .h-msg{ color:var(--muted); font-size:13px; margin-top:4px; line-height:1.25rem; }
+
+    .h-act{ flex:0 0 auto; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="topbar">
+    <div class="brand">
+      <a class="brand-title" th:href="@{/}">Школьное расписание</a>
+      <p class="brand-sub">Главная</p>
+    </div>
+
+    <div class="nav">
+      <a th:href="@{/schedule}">📅 По дням</a>
+      <a th:href="@{/schedule/week}">🗓️ Неделя</a>
+      <a th:href="@{/stats}">📊 Статистика</a>
+      <a th:href="@{/about}">ℹ️ Об авторе</a>
+
+      <span sec:authorize="hasRole('ADMIN')" class="inline">
+        <a th:href="@{/classes}">🏫 Классы</a>
+        <a th:href="@{/setup}">🧩 Справочники</a>
+        <a th:href="@{/admin/users}">👥 Пользователи</a>
+      </span>
+    </div>
+
+    <div class="userbox">
+      <div class="badge">👤 <span>Пользователь:</span> <b sec:authentication="name">user</b></div>
+      <form th:action="@{/logout}" method="post" style="margin:0;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <button class="btn" type="submit">Выйти</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="pagehead pagehead-center">
+    <h1>Школьное расписание</h1>
+    <p>Быстрый доступ к просмотру расписания, статистике и данным — в зависимости от роли пользователя.</p>
+  </div>
+
+  <div class="grid">
+
+    <!-- ✅ Готовность системы — только для ADMIN -->
+    <div class="card" sec:authorize="hasRole('ADMIN')">
+      <div class="h2" style="margin-bottom:6px;">Готовность системы</div>
+
+      <div class="muted" th:if="${readyAll}">
+        Всё готово: можно спокойно заполнять расписание и пользоваться приложением.
+      </div>
+      <div class="muted" th:if="${!readyAll}">
+        Есть пункты, которые лучше заполнить, чтобы приложение работало “как по учебнику”.
+      </div>
+
+      <div class="health-list">
+        <div class="health-item" th:each="it : ${health}">
+          <div class="h-left">
+            <div class="dot" th:classappend="${it.status}"></div>
+            <div>
+              <div class="h-title">
+                <span th:text="${it.title}">Пункт</span>
+                <span class="h-value" th:text="${it.value}">0</span>
+              </div>
+              <div class="h-msg" th:text="${it.message}">Сообщение</div>
+            </div>
+          </div>
+
+          <div class="h-act">
+            <a class="btn btn-link"
+               th:if="${it.actionUrl != null}"
+               th:href="${it.actionUrl}"
+               th:text="${it.actionText}">Перейти</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="h2" style="margin-bottom:6px;">Основные разделы</div>
+      <div class="muted">Открывай нужный режим в один клик.</div>
+
+      <div style="margin-top:12px;">
+        <div class="action-grid">
+          <a class="action" th:href="@{/schedule}">
+            <div class="ic">📅</div>
+            <div>
+              <div class="t">По дням</div>
+              <div class="d">Выбор класса и дня недели.</div>
+            </div>
+          </a>
+
+          <a class="action" th:href="@{/schedule/week}">
+            <div class="ic">🗓️</div>
+            <div>
+              <div class="t">Неделя</div>
+              <div class="d">Обзор расписания на всю неделю.</div>
+            </div>
+          </a>
+
+          <a class="action" th:href="@{/stats}">
+            <div class="ic">📊</div>
+            <div>
+              <div class="t">Статистика</div>
+              <div class="d">Сводка и диаграмма по дням недели.</div>
+            </div>
+          </a>
+
+          <a class="action" th:href="@{/about}">
+            <div class="ic">ℹ️</div>
+            <div>
+              <div class="t">Об авторе</div>
+              <div class="d">Контакты автора и информация о проекте.</div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" sec:authorize="hasRole('ADMIN')">
+      <div class="h2" style="margin-bottom:6px;">Администрирование</div>
+      <div class="muted">Управление классами и справочниками.</div>
+
+      <div style="margin-top:12px;">
+        <div class="action-grid" style="grid-template-columns:repeat(3, 1fr);">
+          <a class="action" th:href="@{/classes}">
+            <div class="ic">🏫</div>
+            <div>
+              <div class="t">Классы</div>
+              <div class="d">Добавление и редактирование классов.</div>
+            </div>
+          </a>
+
+          <a class="action" th:href="@{/setup}">
+            <div class="ic">🧩</div>
+            <div>
+              <div class="t">Справочники</div>
+              <div class="d">Учителя, кабинеты, предметы, слоты времени.</div>
+            </div>
+          </a>
+
+          <a class="action" th:href="@{/admin/users}">
+            <div class="ic">👥</div>
+            <div>
+              <div class="t">Пользователи</div>
+              <div class="d">Просмотр и управление учётными записями.</div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>
